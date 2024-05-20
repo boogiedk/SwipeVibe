@@ -23,7 +23,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile
+          file: ./SwipeVibe.Backend/Dockerfile
           push: true
           tags: boogiedk/swipe-vibe-app:latest
       - name: Deploy to VPS
