@@ -26,7 +26,7 @@ cd SwipeVibe.Backend\bin\Debug\net8.0\
 ```
 6. Выполнить команду для запуска приложения:
 ```sh
-dotnet dotnet SwipeVibe.Backend.dll
+dotnet SwipeVibe.Backend.dll
 ```
 7. Перейти по адресу в браузере `http://localhost:5000`
 
