@@ -24,16 +24,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
 
-
-
+        <Content Update="swipe-vibe.sqlite">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
 
     </ItemGroup>
-
-
 
 
 </Project>

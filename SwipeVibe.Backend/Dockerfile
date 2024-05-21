@@ -17,4 +17,4 @@ RUN dotnet publish "SwipeVibe.Backend.csproj" -c Release -o /app/publish /p:UseA
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "SwipeVibe.Backend.dll"]
+ENTRYPOINT ["dotnet SwipeVibe.Backend.dll && dotnet ef database update"]
