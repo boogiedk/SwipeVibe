@@ -4,6 +4,7 @@ using System.Text;
 using SwipeVibe.Backend.Models.Profile;
 using SwipeVibe.Backend.Models.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -238,7 +239,7 @@ usersGroup.MapPost( "/login",  async (UserLoginRequest request, ApplicationDbCon
     .WithDescription("Авторизует пользователя")
     .WithOpenApi();
 
-usersGroup.MapPost("/search", async (HttpRequest request, UserSearchFilter filter, ApplicationDbContext context) =>
+usersGroup.MapGet("/search", async ([FromQuery(Name = "filter")] UserSearchFilter filter, HttpRequest request, ApplicationDbContext context) =>
     {
         var currentUser = await getCurrentUser(request, context);
         

@@ -1,0 +1,256 @@
+{
+	"info": {
+		"_postman_id": "e3345f2f-f1f1-46ee-b586-046462fa3140",
+		"name": "SwipeVibeCollection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5969709"
+	},
+	"item": [
+		{
+			"name": "CreateUser",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Проверка статуса ответа",
+							"if (pm.response.code === 200) {",
+							"    // Получить тело ответа как строку",
+							"    const responseText = pm.response.text();",
+							"    console.log(responseText);",
+							"",
+							"    // Парсинг тела ответа в объект JSON",
+							"    let responseJson;",
+							"    try {",
+							"        responseJson = JSON.parse(responseText);",
+							"    } catch (e) {",
+							"        console.error(\"Не удалось парсить ответ как JSON\", e);",
+							"        pm.test(\"Ответ должен быть корректным JSON\", function() {",
+							"            pm.expect.fail(\"Ответ не является корректным JSON\");",
+							"        });",
+							"    }",
+							"",
+							"    // Извлечение userId и сохранение его в коллекцию переменных",
+							"    if (responseJson && responseJson.userId) {",
+							"        const userId = responseJson.userId;",
+							"        console.log(userId);",
+							"        pm.collectionVariables.set(\"UserId\", userId);",
+							"    } else {",
+							"        console.error(\"userId отсутствует в ответе\");",
+							"        pm.test(\"Ответ должен содержать userId\", function() {",
+							"            pm.expect(responseJson).to.have.property('userId');",
+							"        });",
+							"    }",
+							"} else {",
+							"    console.log(`HTTP статус ответа: ${pm.response.code}. Скрипт не будет выполняться.`);",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"msisdn\": \"{{Msisdn}}\",\r\n  \"password\": \"{{Password}}\",\r\n  \"profile\": {\r\n    \"firstName\": \"{{FirstName}}\",\r\n    \"secondName\": \"{{SecondName}}\",\r\n    \"birthdayDate\": \"2024-05-21T14:03:02.312Z\",\r\n    \"gender\": 1,\r\n    \"description\": \"Football\",\r\n    \"cityName\": \"Moscow\"\r\n  }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/users",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LoginUser",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"msisdn\": \"{{Msisdn}}\",\r\n  \"password\": \"{{Password}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/users/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetUser",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{AuthToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/{{UserId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"{{UserId}}"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SearchUsers",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{AuthToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"firstName\": \"string\",\r\n  \"secondName\": \"string\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/users/search?FirstName={{FirstName}}&SecondName={{SecondName}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"search"
+					],
+					"query": [
+						{
+							"key": "FirstName",
+							"value": "{{FirstName}}"
+						},
+						{
+							"key": "SecondName",
+							"value": "{{SecondName}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "Msisdn",
+			"value": "79150000011",
+			"type": "string"
+		},
+		{
+			"key": "Password",
+			"value": "qwerty123444",
+			"type": "string"
+		},
+		{
+			"key": "baseUrl",
+			"value": "http://194.87.238.195:81",
+			"type": "string"
+		},
+		{
+			"key": "UserId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "AuthToken",
+			"value": ""
+		},
+		{
+			"key": "FirstName",
+			"value": "Ivan",
+			"type": "string"
+		},
+		{
+			"key": "SecondName",
+			"value": "Ivanov",
+			"type": "string"
+		}
+	]
+}
