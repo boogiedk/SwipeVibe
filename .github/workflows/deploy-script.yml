@@ -39,6 +39,6 @@ jobs:
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/swipe-vibe-app:latest
             docker stop swipe-vibe-app || true
             docker rm swipe-vibe-app || true
-           docker run -d --name swipe-vibe-app -p 5000:85 ${{ secrets.DOCKERHUB_USERNAME }}/swipe-vibe-app:latest
+           docker run -d --name swipe-vibe-app -p 5000:8080 ${{ secrets.DOCKERHUB_USERNAME }}/swipe-vibe-app:latest
           EOF
           
