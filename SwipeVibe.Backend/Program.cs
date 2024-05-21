@@ -239,7 +239,7 @@ usersGroup.MapPost( "/login",  async (UserLoginRequest request, ApplicationDbCon
     .WithDescription("Авторизует пользователя")
     .WithOpenApi();
 
-usersGroup.MapGet("/search", async ([FromQuery(Name = "filter")] UserSearchFilter filter, HttpRequest request, ApplicationDbContext context) =>
+usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest request, ApplicationDbContext context) =>
     {
         var currentUser = await getCurrentUser(request, context);
         

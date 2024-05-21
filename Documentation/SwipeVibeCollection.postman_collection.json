@@ -1,7 +1,8 @@
 {
 	"info": {
-		"_postman_id": "e3345f2f-f1f1-46ee-b586-046462fa3140",
-		"name": "SwipeVibeCollection",
+		"_postman_id": "75ac19f8-7b06-4904-b7d3-5ac7f8f8528d",
+		"name": "SwipeVibe Collection",
+		"description": "Коллекция запросов для работы с SwipeVibe api. В запросах используется post-script код, который динамически подтягивет значения от запросов в некоторые методы.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "5969709"
 	},
@@ -79,6 +80,33 @@
 		},
 		{
 			"name": "LoginUser",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Проверка статуса ответа\r",
+							"if (pm.response.code === 200) {\r",
+							"    // Получить тело ответа как строку\r",
+							"    const responseText = pm.response.text();\r",
+							"    console.log(\"Raw response: \" + responseText);\r",
+							"\r",
+							"    // Удаление кавычек в начале и конце строки\r",
+							"    const authToken = responseText.replace(/^\"|\"$/g, '');\r",
+							"    console.log(\"AuthToken without quotes: \" + authToken);\r",
+							"\r",
+							"    // Сохранение токена в коллекцию переменных\r",
+							"    pm.collectionVariables.set(\"AuthToken\", authToken);\r",
+							"} else {\r",
+							"    console.log(`HTTP статус ответа: ${pm.response.code}. Скрипт не будет выполняться.`);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -144,9 +172,6 @@
 		},
 		{
 			"name": "SearchUsers",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -158,11 +183,16 @@
 						}
 					]
 				},
-				"method": "GET",
-				"header": [],
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{AuthToken}}"
+					}
+				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"firstName\": \"string\",\r\n  \"secondName\": \"string\"\r\n}",
+					"raw": "{\r\n  \"firstName\": \"{{FirstName}}\",\r\n  \"secondName\": \"{{SecondName}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -170,7 +200,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/v1/users/search?FirstName={{FirstName}}&SecondName={{SecondName}}",
+					"raw": "{{baseUrl}}/api/v1/users/search",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -179,16 +209,6 @@
 						"v1",
 						"users",
 						"search"
-					],
-					"query": [
-						{
-							"key": "FirstName",
-							"value": "{{FirstName}}"
-						},
-						{
-							"key": "SecondName",
-							"value": "{{SecondName}}"
-						}
 					]
 				}
 			},
@@ -220,12 +240,12 @@
 	"variable": [
 		{
 			"key": "Msisdn",
-			"value": "79150000011",
+			"value": "79150000015",
 			"type": "string"
 		},
 		{
 			"key": "Password",
-			"value": "qwerty123444",
+			"value": "qwerty123",
 			"type": "string"
 		},
 		{
