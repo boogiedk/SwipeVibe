@@ -41,6 +41,6 @@ jobs:
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
           docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml down || true
           docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml pull
-          docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml up -d
+          docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml up -d --force-recreate
           EOF
 
