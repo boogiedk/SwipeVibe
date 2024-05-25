@@ -39,7 +39,7 @@ jobs:
           scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r * ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USERNAME }}/project
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} <<-EOF
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-          docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml down || true
+          docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml down --volumes || true
           docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml pull
           docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml up -d --force-recreate
           EOF
