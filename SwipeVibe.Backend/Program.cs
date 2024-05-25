@@ -17,7 +17,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var securityKey = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("SecurityKey").Value!);
 
@@ -105,7 +105,7 @@ var usersGroup = app.MapGroup("api/v1/users");
 usersGroup.MapPost("/", async (UserCreateRequest request, ApplicationDbContext context) =>
     {
         var user = await context.Users.FirstOrDefaultAsync(f => f.Msisdn == request.Msisdn);
-
+        
         if (user is not null)
         {
             return Results.BadRequest();
@@ -143,34 +143,6 @@ usersGroup.MapPost("/", async (UserCreateRequest request, ApplicationDbContext c
     .WithName("RegisterUser")
     .WithDescription("Создает пользователя")
     .WithOpenApi();
-
-async Task<UserModel?> getCurrentUser(HttpRequest request, ApplicationDbContext context)
-{
-    if (!request.Headers.TryGetValue("Authorization", out var authorizationHeader))
-    {
-        return null;
-    }
-
-    var token = authorizationHeader.ToString().Split(" ").Last();
-    var handler = new JwtSecurityTokenHandler();
-
-    if (!handler.CanReadToken(token))
-    {
-        return null;
-    }
-
-    var jwtToken = handler.ReadJwtToken(token);
-    var msisdnClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "Msisdn")?.Value;
-
-    var userModelDb = await context.Users.FirstOrDefaultAsync(w => w.Msisdn == msisdnClaim);
-
-    return new UserModel()
-    {
-        UserId = userModelDb.UserId,
-        PasswordHash = userModelDb.PasswordHash,
-        Msisdn = userModelDb.Msisdn
-    };
-}
 
 
 usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, ApplicationDbContext context) =>
@@ -266,5 +238,33 @@ usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest reques
     .RequireAuthorization();
 
 # endregion
+
+async Task<UserModel?> getCurrentUser(HttpRequest request, ApplicationDbContext context)
+{
+    if (!request.Headers.TryGetValue("Authorization", out var authorizationHeader))
+    {
+        return null;
+    }
+
+    var token = authorizationHeader.ToString().Split(" ").Last();
+    var handler = new JwtSecurityTokenHandler();
+
+    if (!handler.CanReadToken(token))
+    {
+        return null;
+    }
+
+    var jwtToken = handler.ReadJwtToken(token);
+    var msisdnClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "Msisdn")?.Value;
+
+    var userModelDb = await context.Users.FirstOrDefaultAsync(w => w.Msisdn == msisdnClaim);
+
+    return new UserModel()
+    {
+        UserId = userModelDb.UserId,
+        PasswordHash = userModelDb.PasswordHash,
+        Msisdn = userModelDb.Msisdn
+    };
+}
 
 app.Run();
