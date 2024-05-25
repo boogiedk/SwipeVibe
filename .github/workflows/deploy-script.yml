@@ -6,28 +6,25 @@ on:
       - master
 
 jobs:
-  build-and-deploy:
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install Docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io
-
-      - name: Install Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
-      - name: Build and push SwipeVibe.Backend
-        run: |
-          docker build -t swipe-vibe-backend ./SwipeVibe.Backend
-          docker tag swipe-vibe-backend:latest ${{ secrets.DOCKERHUB_USERNAME }}/swipe-vibe-backend:latest
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/swipe-vibe-backend:latest
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      
+      - name: Build and push swipe-vibe-app
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./SwipeVibe.Backend/Dockerfile
+          push: true
+          tags: boogiedk/swipe-vibe-app:latest
 
       - name: Deploy to VPS
         run: |
@@ -37,21 +34,11 @@ jobs:
           eval "$(ssh-agent -s)"
           echo "${{ secrets.VPS_PRIVATE_KEY_PASSPHRASE }}" | expect -c "spawn ssh-add private_key; expect \"Enter passphrase:\"; send -- \"${{ secrets.VPS_PRIVATE_KEY_PASSPHRASE }}\r\"; expect eof"
           rm -f private_key
-          
-          # Создаем целевую директорию на сервере, если она не существует
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "mkdir -p /home/${{ secrets.VPS_USERNAME }}/project"
-          
-          # Копируем все файлы проекта на сервер, включая docker-compose.yml из директории SwipeVibe
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./* ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USERNAME }}/project
-          
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r * ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USERNAME }}/project
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} <<-EOF
             docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-            cd /home/${{ secrets.VPS_USERNAME }}/project
-            if [ ! -f docker-compose.yml ]; then
-              echo "docker-compose.yml not found in /home/${{ secrets.VPS_USERNAME }}/project"
-              exit 1
-            fi
-            docker-compose down || true
-            docker-compose pull
-            docker-compose up -d
+            docker-compose -f /home/${{ secrets.VPS_USERNAME }}/docker-compose.yml down || true
+            docker-compose -f /home/${{ secrets.VPS_USERNAME }}/docker-compose.yml pull
+            docker-compose -f /home/${{ secrets.VPS_USERNAME }}/docker-compose.yml up -d
           EOF
