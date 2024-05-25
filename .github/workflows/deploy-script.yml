@@ -35,10 +35,12 @@ jobs:
           echo "${{ secrets.VPS_PRIVATE_KEY_PASSPHRASE }}" | expect -c "spawn ssh-add private_key; expect \"Enter passphrase:\"; send -- \"${{ secrets.VPS_PRIVATE_KEY_PASSPHRASE }}\r\"; expect eof"
           rm -f private_key
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} "mkdir -p /home/${{ secrets.VPS_USERNAME }}/project"
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USERNAME }}/project
           scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r * ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}:/home/${{ secrets.VPS_USERNAME }}/project
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }} <<-EOF
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-            docker-compose -f /home/${{ secrets.VPS_USERNAME }}/docker-compose.yml down || true
-            docker-compose -f /home/${{ secrets.VPS_USERNAME }}/docker-compose.yml pull
-            docker-compose -f /home/${{ secrets.VPS_USERNAME }}/docker-compose.yml up -d
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+          docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml down || true
+          docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml pull
+          docker-compose -f /home/${{ secrets.VPS_USERNAME }}/project/docker-compose.yml up -d
           EOF
+
