@@ -109,6 +109,7 @@ usersGroup.MapPost("/", async (UserCreateRequest request, IUserRepository userRe
     {
         var user = await userRepository.GetUserByMsisdn(request.Msisdn);
         
+        
         if (user is not null)
         {
             return Results.BadRequest();
