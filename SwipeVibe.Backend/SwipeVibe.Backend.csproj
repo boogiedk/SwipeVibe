@@ -29,16 +29,6 @@
             <Link>.dockerignore</Link>
         </Content>
 
-        <Content Update="swipe-vibe.sqlite">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-
-    </ItemGroup>
-
-
-
-    <ItemGroup>
-      <Folder Include="Data\" />
     </ItemGroup>
 
 </Project>

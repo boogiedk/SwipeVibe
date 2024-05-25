@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SwipeVibe.Backend.Data;
 using SwipeVibe.Backend.Infrastructure;
 using SwipeVibe.Backend.Models.Database;
 
@@ -74,6 +75,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 # endregion
 
 var app = builder.Build();
@@ -102,9 +105,9 @@ app.UseHttpsRedirection();
 
 var usersGroup = app.MapGroup("api/v1/users");
 
-usersGroup.MapPost("/", async (UserCreateRequest request, ApplicationDbContext context) =>
+usersGroup.MapPost("/", async (UserCreateRequest request, IUserRepository userRepository) =>
     {
-        var user = await context.Users.FirstOrDefaultAsync(f => f.Msisdn == request.Msisdn);
+        var user = await userRepository.GetUserByMsisdn(request.Msisdn);
         
         if (user is not null)
         {
@@ -114,26 +117,27 @@ usersGroup.MapPost("/", async (UserCreateRequest request, ApplicationDbContext c
         var profileId = Guid.NewGuid();
         var userId = Guid.NewGuid();
 
-        await context.Users
-            .AddAsync(new UserModelDb()
+        await userRepository.CreateUser(
+            new UserModelDb()
             {
                 UserId = userId,
                 Msisdn = request.Msisdn,
-                PasswordHash = AuthExtension.ComputeMD5Hash(request.Password),
-                Profile = new ProfileModelDb
-                {
-                    ProfileId = profileId,
-                    UserId = userId,
-                    FirstName = request.Profile.FirstName,
-                    SecondName = request.Profile.SecondName,
-                    CityName = request.Profile.CityName,
-                    Description = request.Profile.Description,
-                    BirthdayDate = request.Profile.BirthdayDate,
-                    Gender = request.Profile.Gender
-                }
+                PasswordHash = AuthExtension.ComputeMD5Hash(request.Password)
             });
 
-        await context.SaveChangesAsync();
+        await userRepository.CreateProfile(
+            new ProfileModelDb
+            {
+                ProfileId = profileId,
+                UserId = userId,
+                FirstName = request.Profile.FirstName,
+                LastName = request.Profile.LastName,
+                CityName = request.Profile.CityName,
+                Description = request.Profile.Description,
+                BirthdayDate = request.Profile.BirthdayDate,
+                Gender = request.Profile.Gender
+            }
+        );
 
         return Results.Ok(new UserCreateResponse()
         {
@@ -145,11 +149,11 @@ usersGroup.MapPost("/", async (UserCreateRequest request, ApplicationDbContext c
     .WithOpenApi();
 
 
-usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, ApplicationDbContext context) =>
+usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, IUserRepository userRepository) =>
     {
         # region Auth
 
-        var currentUser = await getCurrentUser(request, context);
+        var currentUser = await getCurrentUser(request, userRepository);
         if (currentUser == null)
         {
             return Results.BadRequest("Incorrect token.");
@@ -157,16 +161,13 @@ usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, Applica
         
         # endregion
 
-        var profile = await context.Profiles
-            .Include(i => i.User)
-            .FirstOrDefaultAsync(w => w.UserId == userId);
-        
+        var profile = await userRepository.GetProfileByUserId(userId);
         if (profile is null)
         {
             return Results.NotFound();
         }
 
-        if (profile.User.Msisdn != currentUser.Msisdn)
+        if (profile.UserId != currentUser.UserId)
         {
             return Results.Unauthorized();
         }
@@ -175,7 +176,7 @@ usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, Applica
         {
             ProfileId = profile.ProfileId,
             FirstName = profile.FirstName,
-            SecondName = profile.SecondName,
+            LastName = profile.LastName,
             CityName = profile.CityName,
             Description = profile.Description,
             BirthdayDate = profile.BirthdayDate,
@@ -211,24 +212,22 @@ usersGroup.MapPost( "/login",  async (UserLoginRequest request, ApplicationDbCon
     .WithDescription("Авторизует пользователя")
     .WithOpenApi();
 
-usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest request, ApplicationDbContext context) =>
+usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest request, IUserRepository userRepository) =>
     {
-        var currentUser = await getCurrentUser(request, context);
-        
-        var profileModels = await context.Profiles
-            .Where(w => w.FirstName.ToLower() == filter.FirstName.ToLower() || w.SecondName.ToLower() == filter.SecondName.ToLower())
-            .Where(w=>w.User.Msisdn != currentUser.Msisdn)
-            .Select(s=> new UserSearchResponse
+        var currentUser = await getCurrentUser(request, userRepository);
+
+        var profileModels =
+            (await userRepository.GetProfilesByUserId(currentUser.UserId, filter.FirstName, filter.LastName))
+            .Select(s => new UserSearchResponse
             {
                 ProfileId = s.ProfileId,
                 FirstName = s.FirstName,
-                SecondName = s.SecondName,
+                LastName = s.LastName,
                 Gender = s.Gender,
                 BirthdayDate = s.BirthdayDate,
                 CityName = s.CityName,
                 Description = s.Description
-            })
-            .ToListAsync();
+            }).ToList();
 
         return Results.Ok(profileModels);
     })
@@ -239,7 +238,7 @@ usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest reques
 
 # endregion
 
-async Task<UserModel?> getCurrentUser(HttpRequest request, ApplicationDbContext context)
+async Task<UserModel?> getCurrentUser(HttpRequest request, IUserRepository userRepository)
 {
     if (!request.Headers.TryGetValue("Authorization", out var authorizationHeader))
     {
@@ -257,7 +256,7 @@ async Task<UserModel?> getCurrentUser(HttpRequest request, ApplicationDbContext 
     var jwtToken = handler.ReadJwtToken(token);
     var msisdnClaim = jwtToken.Claims.FirstOrDefault(claim => claim.Type == "Msisdn")?.Value;
 
-    var userModelDb = await context.Users.FirstOrDefaultAsync(w => w.Msisdn == msisdnClaim);
+    var userModelDb = await userRepository.GetUserByMsisdn(msisdnClaim!);
 
     return new UserModel()
     {
