@@ -12,7 +12,7 @@
 git clone https://github.com/boogiedk/SwipeVibe.git
 ```
 2. Установить SDK и Runtime [.Net Core 8](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-3.  Перейти в директорию c исходным кодом:
+3. Перейти в директорию c исходным кодом:
 ```sh
 cd SwipeVibe
 ```
@@ -28,14 +28,26 @@ cd SwipeVibe.Backend\bin\Debug\net8.0\
 ```sh
 dotnet SwipeVibe.Backend.dll
 ```
-7. Перейти по адресу в браузере `http://localhost:5000`
-
-**Запуск докер-образа с приложением (Linux):**
-1. Скачать последнюю версюю образа из DockerHub и запуcтить его с помощью команды:
+7. Скачать, установить [PostgreSQL](https://www.postgresql.org/download/), а затем настроить на порт `5432` **либо** запустить docker контейнер с помощью команды:
 ```sh
- docker run -d --name swipe-vibe-app -p 5000:8080 boogiedk/swipe-vibe-app:latest
+docker run --name swipe-vibe-db-container -p 5432:5432 -e POSTGRES_USER=swipe-vibe-app -e POSTGRES_PASSWORD=swipe-vibe-app -e POSTGRES_DB=swipe-vibe-app -d postgres:latest
 ```
-2. Перейти по адресу в браузере `http://localhost:5000`
+8. Перейти по адресу в браузере: `http://localhost:5000`
+
+**Запуск docker-compose с приложением (Linux):**
+1. Скачать исходный код проекта через сайт `.zip` **либо** с помощью команды:
+```sh
+git clone https://github.com/boogiedk/SwipeVibe.git
+```
+2. Перейти в директорию c исходным кодом:
+```sh
+cd SwipeVibe
+```
+3. Выполнить команду для запуски docker-compose:
+```sh
+docker compose up
+```
+4. Перейти по адресу в браузере: `http://localhost:5000`
 
 
 ## Как работать
@@ -57,7 +69,7 @@ dotnet SwipeVibe.Backend.dll
 
 * [.NET Core](https://github.com/dotnet)
 * [EF Core](https://github.com/dotnet/efcore)
-* [SQLite](https://www.sqlite.org/index.html)
+* [PostgreSQL](https://www.postgresql.org)
 * [Swagger](https://swagger.io/)
 * [Github Action](https://github.com/features/actions)
 * [Docker](https://www.docker.com/)

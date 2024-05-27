@@ -1,10 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using System.Text;
 using SwipeVibe.Backend.Models.Profile;
 using SwipeVibe.Backend.Models.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -86,6 +84,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
     context.Database.EnsureCreated();
+    context.Database.Migrate();
 }
 
 app.UseAuthentication();
@@ -109,7 +108,6 @@ usersGroup.MapPost("/", async (UserCreateRequest request, IUserRepository userRe
     {
         var user = await userRepository.GetUserByMsisdn(request.Msisdn);
         
-        
         if (user is not null)
         {
             return Results.BadRequest();
@@ -119,7 +117,7 @@ usersGroup.MapPost("/", async (UserCreateRequest request, IUserRepository userRe
         var userId = Guid.NewGuid();
 
         await userRepository.CreateUser(
-            new UserModelDb()
+            new UserModelDb
             {
                 UserId = userId,
                 Msisdn = request.Msisdn,
@@ -173,7 +171,7 @@ usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, IUserRe
             return Results.Unauthorized();
         }
 
-        var result = new ProfileResponse()
+        var result = new ProfileResponse
         {
             ProfileId = profile.ProfileId,
             FirstName = profile.FirstName,
@@ -192,9 +190,9 @@ usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, IUserRe
     .RequireAuthorization();
 
 
-usersGroup.MapPost( "/login",  async (UserLoginRequest request, ApplicationDbContext context) =>
+usersGroup.MapPost("/login", async (UserLoginRequest request, IUserRepository userRepository) =>
     {
-        var user = await context.Users.FirstOrDefaultAsync(f => f.Msisdn == request.Msisdn);
+        var user = await userRepository.GetUserByMsisdn(request.Msisdn);
         if (user is null)
         {
             return Results.Unauthorized();

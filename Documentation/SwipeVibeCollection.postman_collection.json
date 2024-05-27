@@ -57,7 +57,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"msisdn\": \"{{Msisdn}}\",\r\n  \"password\": \"{{Password}}\",\r\n  \"profile\": {\r\n    \"firstName\": \"{{FirstName}}\",\r\n    \"secondName\": \"{{SecondName}}\",\r\n    \"birthdayDate\": \"2024-05-21T14:03:02.312Z\",\r\n    \"gender\": 1,\r\n    \"description\": \"Football\",\r\n    \"cityName\": \"Moscow\"\r\n  }\r\n}",
+					"raw": "{\r\n  \"msisdn\": \"{{Msisdn}}\",\r\n  \"password\": \"{{Password}}\",\r\n  \"profile\": {\r\n    \"firstName\": \"{{FirstName}}\",\r\n    \"lastName\": \"{{LastName}}\",\r\n    \"birthdayDate\": \"2024-05-21T14:03:02.312Z\",\r\n    \"gender\": 1,\r\n    \"description\": \"Football\",\r\n    \"cityName\": \"Moscow\"\r\n  }\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -192,7 +192,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"firstName\": \"{{FirstName}}\",\r\n  \"secondName\": \"{{SecondName}}\"\r\n}",
+					"raw": "{\r\n  \"firstName\": \"{{FirstName}}\",\r\n  \"lastName\": \"{{LastName}}\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -268,7 +268,7 @@
 			"type": "string"
 		},
 		{
-			"key": "SecondName",
+			"key": "LastName",
 			"value": "Ivanov",
 			"type": "string"
 		}

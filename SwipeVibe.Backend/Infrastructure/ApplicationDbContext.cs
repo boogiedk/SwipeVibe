@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SwipeVibe.Backend.Models.Database;
-using SwipeVibe.Backend.Models.Profile;
-using SwipeVibe.Backend.Models.User;
 
 namespace SwipeVibe.Backend.Infrastructure;
 

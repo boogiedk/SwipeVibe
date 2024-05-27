@@ -1,6 +1,4 @@
-﻿using SwipeVibe.Backend.Models.User;
-
-namespace SwipeVibe.Backend.Models.Database;
+﻿namespace SwipeVibe.Backend.Models.Database;
 
 public class ProfileModelDb
 {
