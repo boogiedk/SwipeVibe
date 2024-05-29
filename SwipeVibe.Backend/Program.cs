@@ -216,7 +216,7 @@ usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest reques
         var currentUser = await getCurrentUser(request, userRepository);
 
         var profileModels =
-            (await userRepository.GetProfilesByUserId(currentUser.UserId, filter.FirstName, filter.LastName))
+            (await userRepository.GetProfilesByFilter(currentUser.UserId, filter.FirstName, filter.LastName))
             .Select(s => new UserSearchResponse
             {
                 ProfileId = s.ProfileId,

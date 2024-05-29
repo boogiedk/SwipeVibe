@@ -20,17 +20,17 @@ cd SwipeVibe
 ```sh
 dotnet build
 ```
-5. Перейти в директорию со сборкой с помощью команды:
+5. Скачать, установить [PostgreSQL](https://www.postgresql.org/download/), а затем настроить на порт `5432` **либо** запустить docker контейнер с помощью команды:
+```sh
+docker run --name swipe-vibe-db-container -p 5432:5432 -e POSTGRES_USER=swipe-vibe-app -e POSTGRES_PASSWORD=swipe-vibe-app -e POSTGRES_DB=swipe-vibe-app -d postgres:latest
+```
+6. Перейти в директорию со сборкой приложения с помощью команды:
 ```sh
 cd SwipeVibe.Backend\bin\Debug\net8.0\
 ```
-6. Выполнить команду для запуска приложения:
+7. Выполнить команду для запуска приложения:
 ```sh
 dotnet SwipeVibe.Backend.dll
-```
-7. Скачать, установить [PostgreSQL](https://www.postgresql.org/download/), а затем настроить на порт `5432` **либо** запустить docker контейнер с помощью команды:
-```sh
-docker run --name swipe-vibe-db-container -p 5432:5432 -e POSTGRES_USER=swipe-vibe-app -e POSTGRES_PASSWORD=swipe-vibe-app -e POSTGRES_DB=swipe-vibe-app -d postgres:latest
 ```
 8. Перейти по адресу в браузере: `http://localhost:5000`
 

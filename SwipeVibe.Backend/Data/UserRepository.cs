@@ -10,7 +10,7 @@ public interface IUserRepository
     Task CreateProfile(ProfileModelDb profile);
     Task<UserModelDb?> GetUserByMsisdn(string msisdn);
     Task<ProfileModelDb?> GetProfileByUserId(Guid profileId);
-    Task<List<ProfileModelDb?>> GetProfilesByUserId(Guid userId, string firstName, string lastName);
+    Task<List<ProfileModelDb?>> GetProfilesByFilter(Guid userId, string firstName, string lastName);
 }
 
 
@@ -104,27 +104,28 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<ProfileModelDb?>> GetProfilesByUserId(Guid userId, string firstName, string lastName)
+    public async Task<List<ProfileModelDb?>> GetProfilesByFilter(Guid userId, string firstName, string lastName)
     {
-        var profiles = await context.Profiles.FromSqlRaw(@"
-                SELECT 
-                    p.""ProfileId"",
-                    p.""UserId"", 
-                    p.""FirstName"", 
-                    p.""LastName"", 
-                    p.""BirthdayDate"", 
-                    p.""Gender"",
-                    p.""Description"", 
-                    p.""CityName"" 
-                FROM ""Profiles"" p
-                WHERE 
-                    p.""UserId"" != {0}
-                    AND 
-                        (
-                            p.""FirstName"" = {1} OR p.""LastName"" = {2}
-                        )", userId, firstName, lastName)
+        return await context.Profiles.FromSqlRaw(@"
+            SELECT 
+                p.""ProfileId"",
+                p.""UserId"", 
+                p.""FirstName"", 
+                p.""LastName"", 
+                p.""BirthdayDate"", 
+                p.""Gender"",
+                p.""Description"", 
+                p.""CityName"" 
+            FROM ""Profiles"" p
+            WHERE 
+                p.""UserId"" != {0}
+                AND 
+                (
+                    p.""FirstName"" LIKE '%' || {1} || '%'
+                    OR 
+                    p.""LastName"" LIKE '%' || {2} || '%'
+                )
+            ORDER BY p.""ProfileId"" ASC", userId, firstName, lastName)
             .ToListAsync();
-
-        return profiles;
     }
 }
