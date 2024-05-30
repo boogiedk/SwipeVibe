@@ -1,5 +1,6 @@
 ﻿namespace SwipeVibe.Backend.Models.Database;
 
+
 public class ProfileModelDb
 {
     public Guid ProfileId { get; set; }

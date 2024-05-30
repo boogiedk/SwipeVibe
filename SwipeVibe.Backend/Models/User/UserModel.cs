@@ -3,6 +3,6 @@
 public class UserModel
 {
     public Guid UserId { get; set; }
-    public string Msisdn { get; set; }
-    public string PasswordHash { get; set; }
+    public required string Msisdn { get; set; }
+    public required string PasswordHash { get; set; }
 }

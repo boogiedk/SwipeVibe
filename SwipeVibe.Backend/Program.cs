@@ -216,7 +216,7 @@ usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest reques
         var currentUser = await getCurrentUser(request, userRepository);
 
         var profileModels =
-            (await userRepository.GetProfilesByFilter(currentUser.UserId, filter.FirstName, filter.LastName))
+            (await userRepository.GetProfilesByFilter(filter.FirstName, filter.LastName))
             .Select(s => new UserSearchResponse
             {
                 ProfileId = s.ProfileId,
@@ -259,7 +259,7 @@ async Task<UserModel?> getCurrentUser(HttpRequest request, IUserRepository userR
 
     return new UserModel()
     {
-        UserId = userModelDb.UserId,
+        UserId = userModelDb!.UserId,
         PasswordHash = userModelDb.PasswordHash,
         Msisdn = userModelDb.Msisdn
     };

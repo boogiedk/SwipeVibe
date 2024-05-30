@@ -2,6 +2,6 @@
 
 public class UserLoginRequest
 {
-    public string Msisdn { get; set; }
-    public string Password { get; set; }
+    public required string Msisdn { get; set; }
+    public required string Password { get; set; }
 }

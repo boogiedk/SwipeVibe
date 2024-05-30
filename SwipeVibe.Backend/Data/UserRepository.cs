@@ -10,7 +10,7 @@ public interface IUserRepository
     Task CreateProfile(ProfileModelDb profile);
     Task<UserModelDb?> GetUserByMsisdn(string msisdn);
     Task<ProfileModelDb?> GetProfileByUserId(Guid profileId);
-    Task<List<ProfileModelDb?>> GetProfilesByFilter(Guid userId, string firstName, string lastName);
+    Task<List<ProfileModelDb>> GetProfilesByFilter(string firstName, string lastName);
 }
 
 
@@ -18,78 +18,68 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
 {
     public async Task CreateUser(UserModelDb user)
     {
-        var sql = @"
+        await context.Database.ExecuteSqlInterpolatedAsync(@$"
         INSERT INTO ""Users"" 
             (
-            ""UserId"", 
-            ""Msisdn"", 
-            ""PasswordHash""
+                ""UserId"", 
+                ""Msisdn"", 
+                ""PasswordHash""
             )
         VALUES
             (
-            {0}, 
-            {1}, 
-            {2}
-            )";
-
-        await context.Database.ExecuteSqlRawAsync(sql, user.UserId, user.Msisdn, user.PasswordHash);
+                {user.UserId}, 
+                {user.Msisdn}, 
+                {user.PasswordHash}
+            )");
         await context.SaveChangesAsync();
     }
 
     public async Task CreateProfile(ProfileModelDb profile)
     {
-        var sql = @"
+        await context.Database.ExecuteSqlInterpolatedAsync(@$"
         INSERT INTO ""Profiles"" 
             (
-             ""ProfileId"", 
-             ""UserId"", 
-             ""FirstName"", 
-             ""LastName"", 
-             ""BirthdayDate"", 
-             ""Gender"", 
-             ""Description"", 
-             ""CityName""
+                ""ProfileId"", 
+                ""UserId"", 
+                ""FirstName"", 
+                ""LastName"", 
+                ""BirthdayDate"", 
+                ""Gender"", 
+                ""Description"", 
+                ""CityName""
              )
         VALUES 
             (
-                {0}, 
-                {1}, 
-                {2}, 
-                {3}, 
-                {4}, 
-                {5}, 
-                {6}, 
-                {7}
-            )";
-
-        await context.Database.ExecuteSqlRawAsync(sql,
-            profile.ProfileId,
-            profile.UserId, profile.FirstName,
-            profile.LastName,
-            profile.BirthdayDate,
-            profile.Gender,
-            profile.Description,
-            profile.CityName);
+                {profile.ProfileId}, 
+                {profile.UserId}, 
+                {profile.FirstName}, 
+                {profile.LastName}, 
+                {profile.BirthdayDate}, 
+                {profile.Gender}, 
+                {profile.Description}, 
+                {profile.CityName}
+            )");
+        
         await context.SaveChangesAsync();
     }
     
     public async Task<UserModelDb?> GetUserByMsisdn(string msisdn)
     {
         return await context.Users!
-            .FromSqlRaw(@"
+            .FromSqlInterpolated(@$"
                 SELECT 
                     ""UserId"",
                     ""Msisdn"",
                     ""PasswordHash""
                 FROM ""Users"" 
-                WHERE ""Msisdn"" = {0}", msisdn)
+                WHERE ""Msisdn"" = {msisdn}")
             .FirstOrDefaultAsync();
     }
 
     public async Task<ProfileModelDb?> GetProfileByUserId(Guid userId)
     {
         return await context.Profiles
-            .FromSqlRaw(@"
+            .FromSqlInterpolated(@$"
                 SELECT 
                     p.""ProfileId"",
                     p.""UserId"", 
@@ -100,13 +90,13 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
                     p.""Description"", 
                     p.""CityName"" 
                 FROM ""Profiles"" p
-                WHERE p.""UserId"" = {0}", userId)
+                WHERE p.""UserId"" = {userId}")
             .FirstOrDefaultAsync();
     }
 
-    public async Task<List<ProfileModelDb?>> GetProfilesByFilter(Guid userId, string firstName, string lastName)
+    public async Task<List<ProfileModelDb>> GetProfilesByFilter(string firstName, string lastName)
     {
-        return await context.Profiles.FromSqlRaw(@"
+        return await context.Profiles.FromSqlInterpolated(@$"
             SELECT 
                 p.""ProfileId"",
                 p.""UserId"", 
@@ -118,14 +108,11 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
                 p.""CityName"" 
             FROM ""Profiles"" p
             WHERE 
-                p.""UserId"" != {0}
-                AND 
                 (
-                    p.""FirstName"" LIKE '%' || {1} || '%'
+                    p.""FirstName"" LIKE '%' || {firstName} || '%'
                     OR 
-                    p.""LastName"" LIKE '%' || {2} || '%'
-                )
-            ORDER BY p.""ProfileId"" ASC", userId, firstName, lastName)
+                    p.""LastName"" LIKE '%' || {lastName} || '%'
+                )")
             .ToListAsync();
     }
 }
