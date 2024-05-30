@@ -213,8 +213,6 @@ usersGroup.MapPost("/login", async (UserLoginRequest request, IUserRepository us
 
 usersGroup.MapPost("/search", async (UserSearchFilter filter, HttpRequest request, IUserRepository userRepository) =>
     {
-        var currentUser = await getCurrentUser(request, userRepository);
-
         var profileModels =
             (await userRepository.GetProfilesByFilter(filter.FirstName, filter.LastName))
             .Select(s => new UserSearchResponse
