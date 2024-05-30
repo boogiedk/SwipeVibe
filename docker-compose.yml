@@ -7,10 +7,9 @@ services:
       context: .
       dockerfile: ./SwipeVibe.Backend/Dockerfile
     ports:
-      - "5000:8080"
+      - "5000:5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Username=swipe-vibe-app;Password=swipe-vibe-app;Database=swipe-vibe-db
     depends_on:
       - db
 

@@ -15,6 +15,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -94,7 +99,7 @@ app.UseSwagger();
 
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "SwipeVibe API V1");
     c.RoutePrefix = string.Empty;
 });
 
@@ -110,7 +115,7 @@ usersGroup.MapPost("/", async (UserCreateRequest request, IUserRepository userRe
         
         if (user is not null)
         {
-            return Results.BadRequest();
+            return Results.BadRequest("Пользователь уже существует.");
         }
         
         var profileId = Guid.NewGuid();
@@ -155,7 +160,7 @@ usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, IUserRe
         var currentUser = await getCurrentUser(request, userRepository);
         if (currentUser == null)
         {
-            return Results.BadRequest("Incorrect token.");
+            return Results.BadRequest("Пользователь с таким токеном не существует.");
         }
         
         # endregion
@@ -163,12 +168,12 @@ usersGroup.MapGet( "/{userId}", async (Guid userId, HttpRequest request, IUserRe
         var profile = await userRepository.GetProfileByUserId(userId);
         if (profile is null)
         {
-            return Results.NotFound();
+            return Results.NotFound("Анкета пользователя не найдена.");
         }
 
         if (profile.UserId != currentUser.UserId)
         {
-            return Results.Unauthorized();
+            return Results.BadRequest("Запрашиваемая анкета не принадлежит автору запроса.");
         }
 
         var result = new ProfileResponse
@@ -195,15 +200,15 @@ usersGroup.MapPost("/login", async (UserLoginRequest request, IUserRepository us
         var user = await userRepository.GetUserByMsisdn(request.Msisdn);
         if (user is null)
         {
-            return Results.Unauthorized();
+            return Results.BadRequest("Некорректный номер телефона или пароль.");
         }
 
         if (user.PasswordHash != AuthExtension.ComputeMD5Hash(request.Password))
         {
-            return Results.Unauthorized();
+            return Results.BadRequest("Некорректный номер телефона или пароль.");
         }
 
-        var userJwt = AuthExtension.GenerateJwt(user.Msisdn, securityKey);
+        var userJwt = AuthExtension.GenerateJwt(user.Msisdn!, securityKey);
 
         return Results.Ok(userJwt);
     })
@@ -258,8 +263,8 @@ async Task<UserModel?> getCurrentUser(HttpRequest request, IUserRepository userR
     return new UserModel()
     {
         UserId = userModelDb!.UserId,
-        PasswordHash = userModelDb.PasswordHash,
-        Msisdn = userModelDb.Msisdn
+        PasswordHash = userModelDb.PasswordHash!,
+        Msisdn = userModelDb.Msisdn!
     };
 }
 
