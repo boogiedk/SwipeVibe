@@ -394,4 +394,4 @@ CREATE INDEX idx_firstname_lastname ON "Profiles" ("FirstName", "LastName");
 - [Создание индекса для базы данных](CreateIndexProfileAndUser.sql)
 - [Создание индекса для базы данных V2](CreateIndexProfileAndUserV2.sql)
 
-[Вернуться на вверх](#2-содержание-)
+[Вернуться на вверх](#описание-работы)
